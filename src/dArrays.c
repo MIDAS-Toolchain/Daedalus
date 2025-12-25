@@ -64,21 +64,22 @@ int d_ArrayResize(dArray_t* array) {
     if (!array) return 1;
 
     // If new size is 0, free the data and reset.
-    int new_size = array->capacity * 2;
-    array->data = realloc( array->data, new_size * sizeof( void* ) );
+    array->capacity *= 2;
+    array->data = realloc( array->data, array->capacity * sizeof( void* ) );
 
     return 0; // Success
 }
 
-int d_ArrayGrow(dArray_t* array, int additional_bytes) {
-    if (!array) return 1;
-    if ( additional_bytes <= 0 ) return 1;
+int d_ArrayGrow(dArray_t* array, int additional_bytes)
+{
+  if (!array) return 1;
+  if ( additional_bytes <= 0 ) return 1;
 
-    size_t current_bytes = array->capacity * sizeof( void* );
-    array->data = realloc( array->data,
-                           ( current_bytes +
-                           ( additional_bytes * sizeof( void* ) ) ) );
-    return 0;
+  size_t current_bytes = array->capacity * sizeof( void* );
+  size_t addit_bytes = additional_bytes * sizeof( void* );
+  array->data = realloc( array->data, current_bytes + addit_bytes );
+
+  return 0;
 }
 
 // =============================================================================
@@ -96,6 +97,7 @@ int d_ArrayAppend( dArray_t* array, void* data )
   {
     if ( d_ArrayResize( array ) != 0 ) return 1;
   }
+  
   array->data[array->count++] = data;
 
   return 0;
@@ -103,18 +105,24 @@ int d_ArrayAppend( dArray_t* array, void* data )
 
 void* d_ArrayGet(dArray_t* array, int index)
 {
-    if (!array || index >= array->count) {
-        return NULL;
-    }
+  if (!array || index >= array->count) {
+    return NULL;
+  }
 
-    return array->data[index];
+  return array->data[index];
 }
 
-void* d_ArrayPop(dArray_t* array) {
-    if (!array || array->count == 0) {
-        return NULL;
-    }
-    return array->data[array->count--];
+void* d_ArrayPop(dArray_t* array)
+{
+  if (!array || array->count == 0) {
+    return NULL;
+  }
+
+  void* rtn = array->data[array->count-1]; //-1 offset for index
+  array->data[array->count-1] = NULL;
+  array->count--;
+
+  return rtn;
 }
 
 // =============================================================================

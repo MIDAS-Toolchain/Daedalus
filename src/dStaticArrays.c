@@ -3,7 +3,7 @@
 #include <string.h>
 #include "Daedalus.h"
 
-dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size)
+dStaticArray_t* d_InitStaticArray(int capacity, size_t element_size)
 {
     // Validate input parameters
     if (capacity == 0 || element_size == 0) {
@@ -17,7 +17,7 @@ dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size)
     }
 
     // Calculate total data buffer size
-    size_t data_size = capacity * element_size;
+    size_t data_size = capacity * sizeof( void* );
     
     // Allocate memory for the data buffer
     array->data = malloc(data_size);
@@ -40,20 +40,21 @@ dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size)
 
 int d_StaticArrayDestroy(dStaticArray_t* array)
 {
-    if (!array) {
-        return 1; // NULL pointer - considered failure
-    }
+  if ( !array ) return 1;
 
-    // Free data buffer if it exists
-    if (array->data) {
-        free(array->data);
-        array->data = NULL;
-    }
+  for ( int i = 0; i < array->count; i++ )
+  {
+    free( array->data[i] );
+  }
+  
+  free( array->data );
 
-    // Free the array structure itself
-    free(array);
+  array->data = NULL;
+  array->element_size = array->capacity = 0;
 
-    return 0; // Success
+  free( array );
+  
+  return 0;
 }
 
 // =============================================================================
@@ -64,27 +65,20 @@ int d_StaticArrayAppend(dStaticArray_t* array, void* data)
 {
     // Validate input parameters
     if (!array || !data) {
-        return 1; // Invalid parameters
+        return 0xFF; // Invalid parameters
     }
 
     // Check if array is at capacity
-    if (array->count >= array->capacity) {
+    if (array->count == array->capacity) {
         return 1; // Array is full - cannot append
     }
-
-    // Calculate destination address for new element
-    char* dest = (char*)array->data + (array->count * array->element_size);
     
-    // Copy element data to the array
-    memcpy(dest, data, array->element_size);
-    
-    // Increment count
-    array->count++;
+    array->data[array->count++] = data;
     
     return 0; // Success
 }
 
-void* d_StaticArrayGet(dStaticArray_t* array, size_t index)
+void* d_StaticArrayGet(dStaticArray_t* array, int index)
 {
     // Validate input parameters
     if (!array || !array->data) {
@@ -96,29 +90,26 @@ void* d_StaticArrayGet(dStaticArray_t* array, size_t index)
         return NULL; // Index out of bounds
     }
 
-    // Calculate and return pointer to element
-    char* element_ptr = (char*)array->data + (index * array->element_size);
-    return (void*)element_ptr;
+    return array->data[index];
 }
 
 void* d_StaticArrayPop(dStaticArray_t* array)
 {
-    // Validate input parameters
-    if (!array || !array->data) {
-        return NULL; // Invalid array
-    }
+  // Validate input parameters
+  if (!array || !array->data) {
+    return NULL; // Invalid array
+  }
 
-    // Check if array is empty
-    if (array->count == 0) {
-        return NULL; // No elements to pop
-    }
+  // Check if array is empty
+  if (array->count == 0) {
+    return NULL; // No elements to pop
+  }
+  
+  void* rtn = array->data[array->count-1]; //-1 offset for index
+  array->data[array->count-1] = NULL;
+  array->count--;
 
-    // Decrement count (removing last element from active array)
-    array->count--;
-    
-    // Calculate and return pointer to the element that was just "popped"
-    char* element_ptr = (char*)array->data + (array->count * array->element_size);
-    return (void*)element_ptr;
+  return rtn;
 }
 
 // =============================================================================
@@ -172,34 +163,34 @@ size_t d_StaticArrayGetFreeSpace(dStaticArray_t* array)
  * Example: `int value = 42; d_StaticArrayFill(array, &value, 5);`
  * This fills the first 5 positions of the array with the value 42.
  */
-int d_StaticArrayFill(dStaticArray_t* array, const void* value, size_t num_elements)
+int d_StaticArrayFill(dStaticArray_t* array, void* value, int num_elements)
 {
-    // Input validation
-    if (!array || !value) {
-        d_LogError("Invalid input: array or value is NULL for fill operation.");
-        return 1; // Failure
-    }
+  // Input validation
+  if (!array || !value) {
+    d_LogError("Invalid input: array or value is NULL for fill operation.");
+    return 1; // Failure
+  }
 
-    if (num_elements == 0) {
-        d_LogDebug("Fill operation requested for zero elements. Doing nothing.");
-        return 0; // Success, nothing to do
-    }
+  if (num_elements == 0) {
+    d_LogDebug("Fill operation requested for zero elements. Doing nothing.");
+    return 0; // Success, nothing to do
+  }
 
-    if (num_elements > array->capacity) {
-        d_LogError("Attempted to fill more elements than static array's capacity.");
-        return 1; // Failure, would cause overflow
-    }
+  if (num_elements > array->capacity) {
+    d_LogError("Attempted to fill more elements than static array's capacity.");
+    return 1; // Failure, would cause overflow
+  }
 
-    // Fill the array with copies of the value
-    for (size_t i = 0; i < num_elements; i++) {
-        char* destination_address = (char*)array->data + (i * array->element_size);
-        memcpy(destination_address, value, array->element_size);
-    }
+  // Fill the array with copies of the value
+  for (int i = array->count; i < num_elements; i++)
+  {
+    array->data[i] = value;
+  }
 
-    // Update count to reflect the number of filled elements
-    array->count = num_elements;
+  // Update count to reflect the number of filled elements
+  array->count += num_elements;
 
-    return 0; // Success
+  return 0; // Success
 }
 
 /**
@@ -217,7 +208,7 @@ int d_StaticArrayFill(dStaticArray_t* array, const void* value, size_t num_eleme
  * Example: `void* raw_buffer = d_StaticArrayPeekRawMemory(array);`
  * This returns a pointer to the entire data buffer of the array.
  */
-void* d_StaticArrayPeekRawMemory(dStaticArray_t* array)
+void** d_StaticArrayPeekRawMemory(dStaticArray_t* array)
 {
     // Input validation
     if (!array) {
@@ -309,7 +300,7 @@ int d_StaticArraySaveToFile(const char* filename, const dStaticArray_t* array)
     }
 
     // Write array data (entire capacity, not just count)
-    size_t total_data_size = array->capacity * array->element_size;
+    size_t total_data_size = array->capacity * sizeof( void* );
     if (fwrite(array->data, 1, total_data_size, file) != total_data_size) {
         d_LogError("Failed to write array data to file.");
         fclose(file);
@@ -452,7 +443,7 @@ int d_StaticArrayIterate(const dStaticArray_t* array, dStaticArrayIteratorFunc c
     }
 
     // Iterate through all elements up to count
-    for (size_t i = 0; i < array->count; i++) {
+    for (int i = 0; i < array->count; i++) {
         // Calculate element pointer
         const char* element_ptr = (const char*)array->data + (i * array->element_size);
         
@@ -463,3 +454,4 @@ int d_StaticArrayIterate(const dStaticArray_t* array, dStaticArrayIteratorFunc c
     d_LogDebugF("Successfully iterated over %zu elements in static array", array->count);
     return 0;
 }
+

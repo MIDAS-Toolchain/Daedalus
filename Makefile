@@ -181,6 +181,12 @@ TEST_DUF_OBJS = \
 $(BIN_DIR)/test_duf: tests/test_duf.c $(TEST_DUF_OBJS) | $(BIN_DIR)
 	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
 
+.PHONY: test_dArrays
+test_dArrays: $(BIN_DIR)/test_dArrays
+
+$(BIN_DIR)/test_dArrays: tests/test_dArrays.c $(TEST_DUF_OBJS) | $(BIN_DIR)
+	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
+
 # Test target for DUF edge cases
 .PHONY: test_edge_cases
 test_edge_cases: $(BIN_DIR)/test_edge_cases

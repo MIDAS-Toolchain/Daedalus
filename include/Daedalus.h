@@ -203,10 +203,10 @@ typedef struct          // dArray_t
  */
 typedef struct          // dStaticArray_t
 {
-  size_t capacity;      /**< The fixed maximum number of elements the array can hold. Set at initialization. */
-  size_t count;         /**< The current number of active elements stored in the array. */
+  int capacity;      /**< The fixed maximum number of elements the array can hold. Set at initialization. */
+  int count;         /**< The current number of active elements stored in the array. */
   size_t element_size;  /**< The size in bytes of each individual element stored in the array. */
-  void* data;           /**< A pointer to the fixed-size contiguous memory block holding the elements. */
+  void** data;           /**< A pointer to the fixed-size memory block holding pointers to the elements. */
 } dStaticArray_t;
 
 
@@ -2751,23 +2751,6 @@ int d_ArrayRemove(dArray_t* array, int index);
 int d_ClearArray(dArray_t* array);
 
 /**
- * @brief Optimize memory usage by shrinking the array's capacity to match its count
- *
- * @param array The array to trim
- *
- * @return 0 on success, 1 on failure
- *
- * -- Reduces allocated memory to exactly match the number of elements
- * -- If array is empty, frees the data buffer
- * -- Does nothing if array is already optimally sized
- * -- Useful after bulk removal operations to reclaim memory
- *
- * Example: `d_ArrayTrimCapacity(array);`
- * This trims the array's capacity to match its count, freeing memory if necessary.
- */
-int d_ArrayTrimCapacity(dArray_t* array);
-
-/**
  * @brief Ensure the array has enough capacity for at least min_capacity elements
  *
  * @param array The array to ensure capacity for
@@ -2903,7 +2886,7 @@ size_t d_StaticArrayGetFreeSpace(dStaticArray_t* array);
  * Example: `int value = 42; d_StaticArrayFill(array, &value, 5);`
  * This fills the first 5 positions of the array with the value 42.
  */
-int d_StaticArrayFill(dStaticArray_t* array, const void* value, int num_elements);
+int d_StaticArrayFill(dStaticArray_t* array, void* value, int num_elements);
 
 /**
  * @brief Get direct access to the raw memory buffer of the static array
@@ -2920,7 +2903,7 @@ int d_StaticArrayFill(dStaticArray_t* array, const void* value, int num_elements
  * Example: `void* raw_buffer = d_StaticArrayPeekRawMemory(array);`
  * This returns a pointer to the entire data buffer of the array.
  */
-void* d_StaticArrayPeekRawMemory(dStaticArray_t* array);
+void** d_StaticArrayPeekRawMemory(dStaticArray_t* array);
 
 /**
  * @brief Save a static array to a binary file
