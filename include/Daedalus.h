@@ -182,10 +182,10 @@ typedef struct _dQuadTree_t
  */
 typedef struct          // dArray_t
 {
-  size_t capacity;      /**< The current maximum number of elements the array can hold before reallocation. */
-  size_t count;         /**< The current number of active elements stored in the array. */
+  int capacity;      /**< The current maximum number of elements the array can hold before reallocation. */
+  int count;         /**< The current number of active elements stored in the array. */
   size_t element_size;  /**< The size in bytes of each individual element stored in the array. */
-  void* data;           /**< A pointer to the dynamically allocated contiguous memory block holding the elements. */
+  void** data;           /**< A pointer to the dynamically allocated memory block holding the elements. */
 } dArray_t;
 
 /**
@@ -2556,7 +2556,7 @@ int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
  * Example: `dArray_t* array = d_ArrayInit(10, sizeof(int));`
  * This creates a new array with a capacity of 10 elements, each of size 4 bytes.
  */
-dArray_t* d_ArrayInit( size_t capacity, size_t element_size );
+dArray_t* d_ArrayInit( int capacity, size_t element_size );
 
 /**
  * @brief Destroy a dynamic array.
@@ -2602,7 +2602,7 @@ int d_ArrayDestroy( dArray_t* array );
  * This resizes the internal buffer of `myArray` to accommodate 10 integer elements.
  * If `myArray` previously held more than 10 elements, its `count` will be truncated.
  */
-int d_ArrayResize( dArray_t* array, size_t new_capacity );
+int d_ArrayResize( dArray_t* array );
 
 /**
  * @brief Grow the array by a number of additional bytes.
@@ -2617,7 +2617,7 @@ int d_ArrayResize( dArray_t* array, size_t new_capacity );
  * Example: `d_ArrayGrow(array, 10 * sizeof(int));`
  * This grows the dynamic array by 10 elements, each of size 4 bytes.
  */
-int d_ArrayGrow( dArray_t* array, size_t additional_capacity );
+int d_ArrayGrow( dArray_t* array, int additional_capacity );
 
 /**
  * @brief Append an element to the end of the dynamic array.
@@ -2660,7 +2660,7 @@ int d_ArrayAppend( dArray_t* array, void* data );
  * Example: `void* data = d_ArrayGet(array, 0);`
  * This retrieves the first element from the dynamic array.
  */
-void* d_ArrayGet(dArray_t* array, size_t index);
+void* d_ArrayGet(dArray_t* array, int index);
 
 /**
  * @brief Remove and return the last element from the array.
@@ -2713,7 +2713,7 @@ int d_ArrayClear(dArray_t* array);
  * Example: `d_ArrayInsert(array, &value, 2);`
  * This inserts a value at index 2, shifting existing elements to the right.
  */
-int d_ArrayInsert(dArray_t* array, void* data, size_t index);
+int d_ArrayInsert(dArray_t* array, void* data, int index);
 
 /**
  * @brief Remove data at a specific index from the array
@@ -2731,7 +2731,7 @@ int d_ArrayInsert(dArray_t* array, void* data, size_t index);
  * Example: `d_ArrayRemove(array, 2);`
  * This removes the element at index 2, shifting remaining elements to the left.
  */
-int d_ArrayRemove(dArray_t* array, size_t index);
+int d_ArrayRemove(dArray_t* array, int index);
 
 /**
  * @brief Clear all elements from the array without deallocating memory
@@ -2783,7 +2783,7 @@ int d_ArrayTrimCapacity(dArray_t* array);
  * Example: `d_ArrayEnsureCapacity(array, 100);`
  * This ensures the array has at least 100 elements allocated, growing the array if needed.
  */
-int d_ArrayEnsureCapacity(dArray_t* array, size_t min_capacity);
+int d_ArrayEnsureCapacity(dArray_t* array, int min_capacity);
 
 
 /* --- Static Arrays --- */
@@ -2805,7 +2805,7 @@ int d_ArrayEnsureCapacity(dArray_t* array, size_t min_capacity);
  * Example: `dStaticArray_t* array = d_InitStaticArray(10, sizeof(int));`
  * This creates a new static array with a capacity of 10 elements, each of size 4 bytes.
  */
-dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size);
+dStaticArray_t* d_InitStaticArray(int capacity, size_t element_size);
 
 /**
  * @brief: Destroy a static array and free all associated memory
@@ -2853,7 +2853,7 @@ int d_StaticArrayAppend(dStaticArray_t* array, void* data);
  * Example: `void* data = d_StaticArrayGet(array, 0);`
  * This retrieves the first element from the static array.
  */
-void* d_StaticArrayGet(dStaticArray_t* array, size_t index);
+void* d_StaticArrayGet(dStaticArray_t* array, int index);
 
 /**
  * @brief: Remove and return a pointer to the last element (LIFO behavior)
@@ -2903,7 +2903,7 @@ size_t d_StaticArrayGetFreeSpace(dStaticArray_t* array);
  * Example: `int value = 42; d_StaticArrayFill(array, &value, 5);`
  * This fills the first 5 positions of the array with the value 42.
  */
-int d_StaticArrayFill(dStaticArray_t* array, const void* value, size_t num_elements);
+int d_StaticArrayFill(dStaticArray_t* array, const void* value, int num_elements);
 
 /**
  * @brief Get direct access to the raw memory buffer of the static array

@@ -15,7 +15,7 @@
 // DYNAMIC ARRAY INITIALIZATION AND DESTRUCTION
 // =============================================================================
 
-dArray_t* d_ArrayInit(size_t capacity, size_t element_size) {
+dArray_t* d_ArrayInit(int capacity, size_t element_size) {
     if (element_size == 0) return NULL;
 
     dArray_t* array = (dArray_t*)malloc(sizeof(dArray_t));
@@ -27,7 +27,7 @@ dArray_t* d_ArrayInit(size_t capacity, size_t element_size) {
 
     // Only allocate memory if the initial capacity is greater than zero.
     if (capacity > 0) {
-        array->data = malloc(array->capacity * array->element_size);
+        array->data = malloc( array->capacity * sizeof( void* ) );
         if (!array->data) {
             free(array);
             return NULL;
@@ -39,10 +39,21 @@ dArray_t* d_ArrayInit(size_t capacity, size_t element_size) {
 }
 
 int d_ArrayDestroy(dArray_t* array) {
-    if (!array) return 1;
-    if (array->data) free(array->data);
-    free(array);
-    return 0;
+  if ( !array ) return 1;
+
+  for ( int i = 0; i < array->count; i++ )
+  {
+    free( array->data[i] );
+  }
+  
+  free( array->data );
+
+  array->data = NULL;
+  array->element_size = array->capacity = 0;
+
+  free( array );
+  
+  return 0;
 }
 
 // =============================================================================
