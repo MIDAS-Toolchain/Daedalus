@@ -397,7 +397,7 @@ void d_DUFLexFree(dArray_t* tokens)
         return;
     }
 
-    for (size_t i = 0; i < tokens->count; i++) {
+    for (int i = 0; i < tokens->count; i++) {
         Token_t** tok_ptr = (Token_t**)d_ArrayGet(tokens, i);
         if (tok_ptr != NULL && *tok_ptr != NULL) {
             token_destroy(*tok_ptr);

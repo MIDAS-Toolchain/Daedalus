@@ -42,7 +42,7 @@ static dDUFError_t* create_internal_error(const char* message, const char* file,
 
 typedef struct {
     dArray_t* tokens;
-    size_t pos;
+    int pos;
     Token_t* current;
 } Parser_t;
 
@@ -398,7 +398,7 @@ dDUFError_t* d_DUFParseString(const char* content, dDUFValue_t** out_value)
     }
 
     // Check for lexer errors
-    for (size_t i = 0; i < tokens->count; i++) {
+    for (int i = 0; i < tokens->count; i++) {
         Token_t** tok_ptr = (Token_t**)d_ArrayGet(tokens, i);
         if (tok_ptr != NULL && *tok_ptr != NULL) {
             Token_t* tok = *tok_ptr;

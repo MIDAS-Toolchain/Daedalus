@@ -659,11 +659,11 @@ void d_RemoveLogHandler(dLogger_t* logger, dLogHandler_t handler)
     }
 
     // Search for the handler and remove it
-    for (size_t i = 0; i < logger->handlers->count; i++) {
+    for (int i = 0; i < logger->handlers->count; i++) {
         dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_ArrayGet(logger->handlers, i);
         if (reg && reg->handler == handler) {
             // Found the handler - remove it by shifting remaining elements
-            for (size_t j = i; j < logger->handlers->count - 1; j++) {
+            for (int j = i; j < logger->handlers->count - 1; j++) {
                 dLogHandlerReg_t* current = (dLogHandlerReg_t*)d_ArrayGet(logger->handlers, j);
                 dLogHandlerReg_t* next = (dLogHandlerReg_t*)d_ArrayGet(logger->handlers, j + 1);
                 if (current && next) {
@@ -700,7 +700,7 @@ static void process_log_entry(dLogger_t* logger, dLogEntry_t* entry)
     }
 
     // Process through each handler
-    for (size_t i = 0; i < logger->handlers->count; i++) {
+    for (int i = 0; i < logger->handlers->count; i++) {
         dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_ArrayGet(logger->handlers, i);
         if (reg && reg->handler && entry->level >= reg->min_level) {
             reg->handler(entry, reg->user_data);

@@ -11,7 +11,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     }
 
     // Iterate through the array and free each string builder.
-    for (size_t i = 0; i < string_array->count; i++) {
+    for (int i = 0; i < string_array->count; i++) {
         // Get the location of the dString_t* stored in the array's data.
         dString_t** sb_ptr_location = (dString_t**)d_ArrayGet(string_array, i);
         if (sb_ptr_location != NULL && *sb_ptr_location != NULL) {
