@@ -77,6 +77,7 @@ int d_ArrayGrow(dArray_t* array, int additional_bytes)
   size_t current_bytes = array->capacity * sizeof( void* );
   size_t addit_bytes = additional_bytes * sizeof( void* );
   array->data = realloc( array->data, current_bytes + addit_bytes );
+  array->capacity += additional_bytes;
 
   return 0;
 }
@@ -238,12 +239,10 @@ int d_ArrayClear(dArray_t* array)
   for ( int i = 0; i < array->count; i++ )
   {
     free( array->data[i] );
+    array->data[i] = NULL;
   }
 
-  free( array->data );
-
-  array->data = NULL;
-  array->element_size = array->capacity = array->count = 0;
+  array->count = 0;
 
   return 0;
 }
