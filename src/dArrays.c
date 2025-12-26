@@ -211,19 +211,8 @@ int d_ArrayRemove(dArray_t* array, int index)
                 index, array->count);
     return 1;
   }
-
-  if (index < array->count - 1)
-  {
-    void* temp_holder = NULL;
-    
-    free( array->data[index] );
-
-    for ( int i = index; i < array->count; i++ )
-    {
-      temp_holder = array->data[i+1];
-      array->data[i] = temp_holder;
-    }
-  }
+  
+  array->data[index] = NULL;
 
   array->count--;
   return 0;
