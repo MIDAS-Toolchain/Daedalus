@@ -2733,6 +2733,8 @@ int d_ArrayInsert(dArray_t* array, void* data, int index);
  */
 int d_ArrayRemove(dArray_t* array, int index);
 
+int d_ArrayRemoveByReference(dArray_t* array, void* index_ptr);
+
 /**
  * @brief Clear all elements from the array without deallocating memory
  *

@@ -213,9 +213,26 @@ int d_ArrayRemove(dArray_t* array, int index)
   }
   
   array->data[index] = NULL;
-
-  array->count--;
   return 0;
+}
+
+int d_ArrayRemoveByReference(dArray_t* array, void* index_ptr)
+{
+  if (!array) {
+    d_LogError("Invalid input: array is NULL for remove operation.");
+    return 1;
+  }
+
+  for ( int i = 0; i < array->count; i++ )
+  {
+    if ( array->data[i] == index_ptr )
+    {
+      array->data[i] = NULL;
+      return 0;
+    }
+  }
+
+  return 1;
 }
 
 int d_ArrayClear(dArray_t* array)
