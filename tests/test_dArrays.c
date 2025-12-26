@@ -14,16 +14,30 @@ static int test_clear( void );
 
 int main(void)
 {
-    printf("=== dArray Tests ===\n\n");
+  printf("=== dArray Tests ===\n\n");
+  
+  int result = 0;
+  if ( test_destory() ) return 1;
 
-    printf("=== All tests passed! ===\n");
-    return 0;
+  printf("=== All tests passed! ===\n");
+  return 0;
 }
 
 static int test_destory( void )
 {
+  dArray_t* test_array = d_ArrayInit( 10, sizeof( int ) );
+
+  int result = d_ArrayDestroy( test_array );
+  test_array = NULL;
   
-  return 0;
+  if ( !result )
+  {
+    printf( "test_destory passed: %d\n", result );
+    return 0;
+  }
+
+  printf( "test_destory failed: %d\n", result );
+  return 1;
 }
 
 static int test_resize( void )
