@@ -108,8 +108,9 @@ typedef struct _dKinematicBody
   dVec3_t position;     /**< The current position of the body in 3D space. */
   dVec3_t velocity;     /**< The current velocity of the body. */
   dVec3_t acceleration; /**< The current acceleration applied to the body. */
-  dVec3_t force;        /**< The accumulated force acting on the body. */
   float mass;           /**< The mass of the body, used in force calculations (F=ma). */
+  float max_speed;           
+  float max_force;           
 } dKinematicBody_t;
 
 /**
@@ -537,6 +538,7 @@ void  d_ScaleMultiplyVec2f( dVec2_t *output, const dVec2_t vec, const float valu
 void  d_ScaleDivideVec2f( dVec2_t *output, const dVec2_t vec, const float value ); //Divide a vector 2f by a value
 void  d_LimitVec2f( dVec2_t *output, const dVec2_t a, const float value ); //Limit a vector 2f within a range
 void  d_NormalizeVec2f( dVec2_t *output, const dVec2_t vec ); //Normalize a vector 2f
+void  d_SetMagVec2f( dVec2_t *output, const dVec2_t vec, const float mag );
 void  d_CreateNormalVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Create a normal vector from two vector 2fs
 void  d_FindIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2_t lineA1, const dVec2_t lineB0, const dVec2_t lineB1 ); //Find the intersection between two vector 2fs
 dVec2_t d_Perpendicular( dVec2_t vec );
@@ -553,6 +555,7 @@ void  d_ScaleMultiplyVec3f( dVec3_t *output, const dVec3_t vec, const float valu
 void  d_ScaleDivideVec3f( dVec3_t *output, const dVec3_t vec, const float value ); //Divide a vector 3f by a value
 void  d_LimitVec3f( dVec3_t *output, const dVec3_t a, const float value ); //Limit a vector 3f within a range
 void  d_NormalizeVec3f( dVec3_t *output, const dVec3_t vec ); //Normalize a vector 3f
+void  d_SetMagVec3f( dVec3_t *output, const dVec3_t vec, const float mag );
 void  d_CreateNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c ); //Create a normal vector from two vector 3fs
 void  d_NormalizeVec4f( dVec4_t *output, const dVec4_t vec );
 
@@ -1810,7 +1813,13 @@ void d_InsertObjectInQuadtree( dQuadTree_t *tree, void *object );
 void d_SubdivideQuadtree( dQuadTree_t *tree );
 
 /* Kinematic Body 2D  */
-void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t position, const dVec2_t velocity, const dVec2_t acceleration, const float mass );
+dKinematicBody_t *d_KinematicBodyCreate( const dVec3_t position,
+                                         const float mass,
+                                         const float max_speed,
+                                         const float max_force );
+void d_KinematicBodyUpdate( dKinematicBody_t* body );
+void d_KinematicBodyApplyForce( dKinematicBody_t* body, dVec3_t force );
+void d_KinematicBodySeek( dKinematicBody_t* body, dVec3_t target );
 
 /* Strings */
 

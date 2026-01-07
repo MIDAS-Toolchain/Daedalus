@@ -241,6 +241,13 @@ void d_NormalizeVec2f( dVec2_t *output, const dVec2_t vec )
   output->y = vec.y / temp;
 }
 
+void d_SetMagVec2f( dVec2_t *output, const dVec2_t vec, const float mag )
+{
+  dVec2_t temp;
+  d_NormalizeVec2f( &temp, vec );
+  d_ScaleMultiplyVec2f( output, temp, mag ); 
+}
+
 /*
   Creates a normal vector from two vector 2fs
 
@@ -493,6 +500,13 @@ void d_NormalizeVec3f( dVec3_t *output, const dVec3_t vec )
   output->x /= temp;
   output->y /= temp;
   output->z /= temp;
+}
+
+void d_SetMagVec3f( dVec3_t *output, const dVec3_t vec, const float mag )
+{
+  dVec3_t temp;
+  d_NormalizeVec3f( &temp, vec );
+  d_ScaleMultiplyVec3f( output, temp, mag );
 }
 
 /*
