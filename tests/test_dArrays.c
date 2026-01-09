@@ -27,6 +27,15 @@ int main(void)
   if ( test_insert() ) return 1;
   //if ( test_remove() ) return 1;
   if ( test_clear() ) return 1;
+  dVec3_t pos = {0};
+  float mass = 10;
+  float max_speed = 2;
+  float max_force = 0.2;
+
+  dKinematicBody_t* body = d_KinematicBodyCreate( pos, 
+                                   mass, 
+                                   max_speed, 
+                                   max_force );
 
   printf("=== All tests passed! ===\n");
   return 0;

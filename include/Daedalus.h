@@ -1813,7 +1813,7 @@ void d_InsertObjectInQuadtree( dQuadTree_t *tree, void *object );
 void d_SubdivideQuadtree( dQuadTree_t *tree );
 
 /* Kinematic Body 2D  */
-dKinematicBody_t *d_KinematicBodyCreate( const dVec3_t position,
+dKinematicBody_t* d_KinematicBodyCreate( const dVec3_t position,
                                          const float mass,
                                          const float max_speed,
                                          const float max_force );
