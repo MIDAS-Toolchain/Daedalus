@@ -10,10 +10,11 @@
 #define __DAEDALUS_H__
 
 #define MAX_LINE_LENGTH        1024
-#define MAX_FILENAME_LENGTH    256
-#define MAX_NAME_LENGTH        32
-#define MAX_DESCRIPTION_LENGTH 256
-#define MAX_INPUT_LENGTH       16
+#define MAX_FILENAME_LENGTH     256
+#define MAX_NAME_LENGTH          32
+#define MAX_DESCRIPTION_LENGTH  256
+#define MAX_INPUT_LENGTH         16
+#define QT_CAPACITY               1
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -25,7 +26,7 @@
 
 #define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
 
-#define PI 3.14159265
+#define D_PI 3.1415926535897932384626433832
 
 #define D_ASSERT(condition, msg, file, line, func) \
     do { \
@@ -75,6 +76,15 @@ typedef struct _dVec4_t
   float w; /**< The W (or Alpha) component of the vector. */
 } dVec4_t;
 
+typedef struct _Quaternion_t
+{
+  float w;
+  float x;
+  float y;
+  float z;
+
+} dQuaternion_t;
+
 /**
  * @brief Represents a 4x4 matrix, primarily for 3D transformations.
  *
@@ -105,15 +115,36 @@ typedef struct _dMat4x4_t
  */
 typedef struct _dKinematicBody
 {
-  dVec3_t position;     /**< The current position of the body in 3D space. */
-  dVec3_t velocity;     /**< The current velocity of the body. */
-  dVec3_t acceleration; /**< The current acceleration applied to the body. */
-  float mass;           /**< The mass of the body, used in force calculations (F=ma). */
-  float max_speed;           
+  dVec3_t gravity;
+  dVec3_t velocity;
+  dVec3_t force;
+
   float max_force;           
+  float max_speed;           
+
+  float mass;
+  uint8_t takes_gravity;
+  
+  float static_friction;
+  float dynamic_friction;
+  float restitution;
 } dKinematicBody_t;
 
-/**
+typedef struct _dTransform_t
+{
+  dVec3_t position;
+  dVec3_t scale;
+  double rotation;
+  //Quaternion_t rotation; //When we're doing 3D
+} dTransform_t;
+
+typedef struct _dRectf
+{
+  float x, y;
+  float w, h;
+} dRectf_t;
+
+  /**
  * @brief Represents a single triangle in 3D space.
  *
  * Triangles are the fundamental building blocks for representing surfaces and
@@ -162,11 +193,17 @@ typedef struct _dLinkedList_t
  */
 typedef struct _dQuadTree_t
 {
-  float rect[4];             /**< The bounding rectangle of this quadtree node, typically [x, y, width, height]. */
-  int capacity;              /**< The maximum number of objects this node can hold before subdividing. */
-  dLinkedList_t *objects;    /**< A linked list of objects contained within this quadtree node. */
-} dQuadTree_t;
+  dRectf_t rect;
+  dVec3_t points[QT_CAPACITY];
+  int count;
+  uint8_t is_divided;
 
+  struct _dQuadTree_t* nw;
+  struct _dQuadTree_t* ne;
+  struct _dQuadTree_t* sw;
+  struct _dQuadTree_t* se;
+
+} dQuadTree_t;
 
 // -- Array Structures ---
 
@@ -558,6 +595,13 @@ void  d_NormalizeVec3f( dVec3_t *output, const dVec3_t vec ); //Normalize a vect
 void  d_SetMagVec3f( dVec3_t *output, const dVec3_t vec, const float mag );
 void  d_CreateNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c ); //Create a normal vector from two vector 3fs
 void  d_NormalizeVec4f( dVec4_t *output, const dVec4_t vec );
+
+/* Quaternion Operations */
+dQuaternion_t d_QuaternionConjugate( dQuaternion_t q );
+dQuaternion_t d_QuaternionMultiply( dQuaternion_t q, dQuaternion_t p );
+dQuaternion_t d_QuaternionCreateRotation( float angle, dVec3_t u );
+dVec3_t d_QuaternionRotateVector( dVec3_t v, dQuaternion_t q_rot );
+double d_QuaternionInDegrees( dQuaternion_t q );
 
 /* Matrix Operations */
 void d_MatrixClearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity matrix
@@ -1808,18 +1852,31 @@ int d_CompareStaticTable(const void* table1, const void* table2, size_t unused);
 int d_CompareDString(const void* key1, const void* key2, size_t key_size);
 
 /* Quad Tree */
-dQuadTree_t *d_CreateQuadtree( float *rect, int capacity );
-void d_InsertObjectInQuadtree( dQuadTree_t *tree, void *object );
-void d_SubdivideQuadtree( dQuadTree_t *tree );
+dQuadTree_t* d_QuadTreeCreate( dRectf_t boundary );
+uint8_t d_QuadTreeContains( dRectf_t boundary, dVec3_t p );
+void d_QuadTreeSubdivide( dQuadTree_t* node );
+uint8_t d_QuadTreeInsert( dQuadTree_t* node, dVec3_t p );
+void d_QuadTreeFree( dQuadTree_t* node );
 
 /* Kinematic Body 2D  */
-dKinematicBody_t* d_KinematicBodyCreate( const dVec3_t position,
-                                         const float mass,
-                                         const float max_speed,
-                                         const float max_force );
-void d_KinematicBodyUpdate( dKinematicBody_t* body );
+dKinematicBody_t* d_KinematicBodyCreate( dVec3_t gravity, dVec3_t velocity,
+                                         dVec3_t force, float mass,
+                                         float max_speed, float max_force,
+                                         uint8_t takes_gravity,
+                                         float static_friction,
+                                         float dynamic_friction,
+                                         float restitution );
+
+void d_KinematicBodyUpdate( dKinematicBody_t* body, dTransform_t* trans,
+                            float dt );
 void d_KinematicBodyApplyForce( dKinematicBody_t* body, dVec3_t force );
-void d_KinematicBodySeek( dKinematicBody_t* body, dVec3_t target );
+void d_KinematicBodySeek( dKinematicBody_t* body, dTransform_t* trans,
+                          dVec3_t target );
+
+/* Transform */
+dTransform_t* d_TransformCreate( dVec3_t position,
+                               dVec3_t scale,
+                               double rotation );
 
 /* Strings */
 

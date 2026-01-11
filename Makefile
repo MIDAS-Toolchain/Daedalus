@@ -1,200 +1,167 @@
-CC=gcc
-ECC=emcc
+# ====================================================================
+# PROJECT CONFIGURATION
+# ====================================================================
+
+# Compiler and Tools
+CC = gcc
 EMAR = emar rcs
-CINC = -Iinclude/
-CFLAGS = -std=c99 -Wall -Wextra -lm
 
-# Emscripten web deployment targets
-INDEX_DIR=index
+# Directories
+SRC_DIR    = src
+INC_DIR    = include
+BIN_DIR    = bin
+OBJ_DIR    = obj
+TEST_DIR   = tests
 
-$(INDEX_DIR):
-	mkdir -p $(INDEX_DIR)
+# Object Directories (Separated for different build types)
+OBJ_DIR_NATIVE = obj/native
+OBJ_DIR_SHARED = obj/shared
+OBJ_DIR_EM     = obj/em
 
-SRC_DIR=src
-INC_DIR=include
-BIN_DIR=bin
-OBJ_DIR=obj
-EMS_DIR=ems_obj
-SHA_DIR=shared_obj
-LIB_DIR=lib
+#Flags
+CINC = -I$(INC_DIR)/
+LDLIBS = -lm
 
-.PHONY: native
-native: $(BIN_DIR)/debug
+C_FLAGS = -std=c99 -Wall -Wextra $(CINC)
+NATIVE_C_FLAGS = $(C_FLAGS) -ggdb
+SHARED_C_FLAGS = $(C_FLAGS) -fPIC -pedantic
 
-NATIVE_OBJS = \
-							$(OBJ_DIR)/main.o\
-							$(OBJ_DIR)/dArrays.o\
-							$(OBJ_DIR)/dDUFIO.o\
-							$(OBJ_DIR)/dDUFLexer.o\
-							$(OBJ_DIR)/dDUFParser.o\
-							$(OBJ_DIR)/dDUFQuery.o\
-							$(OBJ_DIR)/dDUFValue.o\
-							$(OBJ_DIR)/dFunctions.o\
-							$(OBJ_DIR)/dKinematicBody.o\
-							$(OBJ_DIR)/dLinkedList.o\
-							$(OBJ_DIR)/dLogs.o\
-							$(OBJ_DIR)/dMatrixMath.o\
-							$(OBJ_DIR)/dStaticArrays.o\
-							$(OBJ_DIR)/dStaticTables.o\
-							$(OBJ_DIR)/dStrings-dArrays.o\
-							$(OBJ_DIR)/dStrings.o\
-							$(OBJ_DIR)/dTables.o\
-							$(OBJ_DIR)/dVectorMath.o\
+# ====================================================================
+# DAEDALUS LIBRARY OBJECTS (Core C Files)
+# ====================================================================
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) -c $< -o $@ -ggdb $(CINC) $(CFLAGS)
+DAEDALUS_SRCS = dArrays.c\
+								dDUFIO.c\
+								dDUFLexer.c\
+								dDUFParser.c\
+								dDUFQuery.c\
+								dDUFValue.c\
+								dFunctions.c\
+								dKinematicBody.c\
+								dLinkedList.c\
+								dLogs.c\
+								dMatrixMath.c\
+								dQuadTree.c\
+								dQuaternion.c\
+								dStaticArrays.c\
+								dStaticTables.c\
+								dStrings-dArrays.c\
+								dStrings.c\
+								dTables.c\
+								dTransform.c\
+								dVectorMath.c\
 
-$(BIN_DIR)/debug: $(NATIVE_OBJS) | $(BIN_DIR)
-	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
+NATIVE_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(DAEDALUS_SRCS))
+SHARED_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_SHARED)/%.o, $(DAEDALUS_SRCS))
+TEST_OBJS = $(patsubst %.c, $(OBJ_DIR_NATIVE)/%.o, $(DAEDALUS_SRCS))
+EMCC_LIB_OBJS = $(patsubst %.c, $(OBJ_DIR_EM)/%.o, $(DAEDALUS_SRCS))
 
+MAIN_OBJ = $(OBJ_DIR_NATIVE)/main.o
+TEST_DARRAY_OBJ = $(OBJ_DIR_NATIVE)/test_dArrays.o
+TEST_DUF_OBJ = $(OBJ_DIR_NATIVE)/test_duf.o
+TEST_EDGE_OBJ = $(OBJ_DIR_NATIVE)/test_edge_cases.o
 
-.PHONY: shared
-shared: $(BIN_DIR)/libDaedalus
+NATIVE_EXE_OBJS = $(NATIVE_LIB_OBJS) $(MAIN_OBJ)
 
-SHARED_OBJS = \
-							$(SHA_DIR)/dArrays.o\
-							$(SHA_DIR)/dDUFIO.o\
-							$(SHA_DIR)/dDUFLexer.o\
-							$(SHA_DIR)/dDUFParser.o\
-							$(SHA_DIR)/dDUFQuery.o\
-							$(SHA_DIR)/dDUFValue.o\
-							$(SHA_DIR)/dFunctions.o\
-							$(SHA_DIR)/dKinematicBody.o\
-							$(SHA_DIR)/dLinkedList.o\
-							$(SHA_DIR)/dLogs.o\
-							$(SHA_DIR)/dMatrixMath.o\
-							$(SHA_DIR)/dStaticArrays.o\
-							$(SHA_DIR)/dStaticTables.o\
-							$(SHA_DIR)/dStrings-dArrays.o\
-							$(SHA_DIR)/dStrings.o\
-							$(SHA_DIR)/dTables.o\
-							$(SHA_DIR)/dVectorMath.o\
+DARRAY_EXE_OBJS = $(TEST_OBJS) $(TEST_DARRAY_OBJ)
+DUF_EXE_OBJS = $(TEST_OBJS) $(TEST_DUF_OBJ)
+EDGE_EXE_OBJS = $(TEST_OBJS) $(TEST_EDGE_OBJ)
 
-$(SHA_DIR)/%.o: $(SRC_DIR)/%.c | $(SHA_DIR)
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
+# ====================================================================
+# PHONY TARGETS
+# ====================================================================
 
-$(BIN_DIR)/libDaedalus: $(SHARED_OBJS)  | $(BIN_DIR)
-	$(CC) $^ $(CINC) -shared -fPIC -pedantic  $(CFLAGS) -o $@.so
+.PHONY: all shared install uninstall clean bear bearclean verify test_duf
+.PHONY: test_dArrays test_edge_cases test_duf_all
 
+all: $(BIN_DIR)/native
+shared: $(BIN_DIR)/libDaedalus.so
 
-.PHONY: EM
-EM: $(BIN_DIR)/libDaedalus.a
-
-EMS_OBJS = \
-							$(EMS_DIR)/dArrays.o\
-							$(EMS_DIR)/dDUFIO.o\
-							$(EMS_DIR)/dDUFLexer.o\
-							$(EMS_DIR)/dDUFParser.o\
-							$(EMS_DIR)/dDUFQuery.o\
-							$(EMS_DIR)/dDUFValue.o\
-							$(EMS_DIR)/dFunctions.o\
-							$(EMS_DIR)/dKinematicBody.o\
-							$(EMS_DIR)/dLinkedList.o\
-							$(EMS_DIR)/dLogs.o\
-							$(EMS_DIR)/dMatrixMath.o\
-							$(EMS_DIR)/dStaticArrays.o\
-							$(EMS_DIR)/dStaticTables.o\
-							$(EMS_DIR)/dStrings-dArrays.o\
-							$(EMS_DIR)/dStrings.o\
-							$(EMS_DIR)/dTables.o\
-							$(EMS_DIR)/dVectorMath.o\
-
-$(EMS_DIR)/%.o: $(SRC_DIR)/%.c | $(EMS_DIR)
-	$(ECC) -c $< $(CINC) -o $@
-
-$(BIN_DIR)/libDaedalus.a: $(EMS_OBJS) | $(BIN_DIR)
-	$(EMAR) $@ $^
-
-
-$(EMS_DIR):
-	mkdir -p $(EMS_DIR)
-
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
-
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
-
-$(SHA_DIR):
-	mkdir -p $(SHA_DIR)
-
-
-.PHONY: install
-install:
-	sudo cp $(BIN_DIR)/libDaedalus.so /usr/lib/
-	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
-
-.PHONY: uninstall
-uninstall:
-	sudo rm /usr/lib/libDaedalus.so
-	sudo rm /usr/include/Daedalus.h
-
-.PHONY: clean
-clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(EMS_DIR) $(SHA_DIR) $(INDEX_DIR)
-	clear
-
-.PHONY: bear
-bear:
-	bear -- make
-
-.PHONY: bearclean
-bearclean:
-	rm compile_commands.json
-
-.PHONY: verify
 verify:
 	./verify_architecture.sh
 
-.PHONY: always
-always:
-	mkdir -p $(BIN_DIR) $(OBJ_DIR) $(LIB_DIR)
-
-.PHONY: all
-all: shared
-
 # Test target for DUF parser
-.PHONY: test_duf
 test_duf: $(BIN_DIR)/test_duf $(BIN_DIR)/test_edge_cases
 	$(BIN_DIR)/test_duf
 	$(BIN_DIR)/test_edge_cases
 
-TEST_DUF_OBJS = \
-							$(OBJ_DIR)/dArrays.o\
-							$(OBJ_DIR)/dDUFIO.o\
-							$(OBJ_DIR)/dDUFLexer.o\
-							$(OBJ_DIR)/dDUFParser.o\
-							$(OBJ_DIR)/dDUFQuery.o\
-							$(OBJ_DIR)/dDUFValue.o\
-							$(OBJ_DIR)/dFunctions.o\
-							$(OBJ_DIR)/dKinematicBody.o\
-							$(OBJ_DIR)/dLinkedList.o\
-							$(OBJ_DIR)/dLogs.o\
-							$(OBJ_DIR)/dMatrixMath.o\
-							$(OBJ_DIR)/dStaticArrays.o\
-							$(OBJ_DIR)/dStaticTables.o\
-							$(OBJ_DIR)/dStrings-dArrays.o\
-							$(OBJ_DIR)/dStrings.o\
-							$(OBJ_DIR)/dTables.o\
-							$(OBJ_DIR)/dVectorMath.o\
-
-$(BIN_DIR)/test_duf: tests/test_duf.c $(TEST_DUF_OBJS) | $(BIN_DIR)
-	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
-
-.PHONY: test_dArrays
 test_dArrays: $(BIN_DIR)/test_dArrays
 
-$(BIN_DIR)/test_dArrays: tests/test_dArrays.c $(TEST_DUF_OBJS) | $(BIN_DIR)
-	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
-
 # Test target for DUF edge cases
-.PHONY: test_edge_cases
 test_edge_cases: $(BIN_DIR)/test_edge_cases
 	$(BIN_DIR)/test_edge_cases
 
-$(BIN_DIR)/test_edge_cases: tests/test_edge_cases.c $(TEST_DUF_OBJS) | $(BIN_DIR)
-	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
-
 # Run all DUF tests
-.PHONY: test_duf_all
 test_duf_all: test_duf test_edge_cases
+
+# ====================================================================
+# DIRECTORY & UTILITY RULES
+# ====================================================================
+
+# Ensure the directories exist before attempting to write files to them
+$(BIN_DIR) $(OBJ_DIR_NATIVE) $(OBJ_DIR_SHARED) $(OBJ_DIR_EM):
+	mkdir -p $@
+
+clean:
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(OBJ_DIR_SHARED)
+	@clear
+
+install:
+	sudo cp $(BIN_DIR)/libDaedalus.so /usr/lib/
+	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
+
+uninstall:
+	sudo rm /usr/lib/libDaedalus.so
+	sudo rm /usr/include/Daedalus.h
+
+bear:
+	bear -- make
+
+bearclean:
+	rm compile_commands.json
+
+# ====================================================================
+# COMPILATION RULES
+# ====================================================================
+
+$(OBJ_DIR_SHARED)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_SHARED)
+	$(CC) -c $< -o $@ $(SHARED_C_FLAGS)
+
+$(OBJ_DIR_NATIVE)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+$(OBJ_DIR_NATIVE)/main.o: $(SRC_DIR)/main.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+$(OBJ_DIR_NATIVE)/test_dArrays.o: $(TEST_DIR)/test_dArrays.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+$(OBJ_DIR_NATIVE)/test_duf.o: $(TEST_DIR)/test_duf.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+$(OBJ_DIR_NATIVE)/test_edge_cases.o: $(TEST_DIR)/test_edge_cases.c | $(OBJ_DIR_NATIVE)
+	$(CC) -c $< -o $@ $(NATIVE_C_FLAGS)
+
+# ====================================================================
+# LINKING RULES
+# ====================================================================
+
+# Target: Native Executable
+$(BIN_DIR)/native: $(NATIVE_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
+
+$(BIN_DIR)/libDaedalus.so: $(SHARED_LIB_OBJS) | $(BIN_DIR)
+	$(CC) -shared $^ -o $@
+
+$(BIN_DIR)/libArchimedes.a: $(EMCC_LIB_OBJS) | $(BIN_DIR)
+	$(EMAR) $@ $^
+
+$(BIN_DIR)/test_duf: $(DUF_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
+
+$(BIN_DIR)/test_dArrays: $(DARRAY_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
+
+$(BIN_DIR)/test_edge_cases: $(EDGE_EXE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -o $@ $(NATIVE_C_FLAGS) $(LDLIBS)
+

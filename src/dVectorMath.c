@@ -243,9 +243,14 @@ void d_NormalizeVec2f( dVec2_t *output, const dVec2_t vec )
 
 void d_SetMagVec2f( dVec2_t *output, const dVec2_t vec, const float mag )
 {
-  dVec2_t temp;
-  d_NormalizeVec2f( &temp, vec );
-  d_ScaleMultiplyVec2f( output, temp, mag ); 
+  dVec2_t temp = {0};
+  float len;
+  len = d_Sqrtf( vec.x * vec.x + vec.y * vec.y );
+  temp.x = vec.x / len;
+  temp.y = vec.y / len;
+  
+  output->x = temp.x * mag;
+  output->y = temp.y * mag;
 }
 
 /*
@@ -504,9 +509,16 @@ void d_NormalizeVec3f( dVec3_t *output, const dVec3_t vec )
 
 void d_SetMagVec3f( dVec3_t *output, const dVec3_t vec, const float mag )
 {
-  dVec3_t temp;
-  d_NormalizeVec3f( &temp, vec );
-  d_ScaleMultiplyVec3f( output, temp, mag );
+  dVec3_t temp = {0};
+  float len;
+  len = d_Sqrtf( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
+  temp.x /= len;
+  temp.y /= len;
+  temp.z /= len;
+  
+  output->x = temp.x * mag;
+  output->y = temp.y * mag;
+  output->z = temp.z * mag;
 }
 
 /*

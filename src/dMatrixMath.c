@@ -150,7 +150,7 @@ void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad )
 */
 void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far )
 {
-  float fFovRad = 1.0f / tanf(fov * 0.5f / 180.0f * PI);
+  float fFovRad = 1.0f / tanf(fov * 0.5f / 180.0f * D_PI);
   
   matrix->m[0]  = aspect_ratio * fFovRad;
   matrix->m[1]  = 0.0f;
