@@ -36,14 +36,14 @@ dKinematicBody_t* d_KinematicBodyCreate( dVec3_t gravity, dVec3_t velocity,
 void d_KinematicBodyUpdate( dKinematicBody_t* body, dTransform_t* trans,
                             float dt )
 {
-  dVec3_t acceleration = {0};
+  dVec3_t acceleration = {0, 0, 0};
   d_ScaleDivideVec3f( &acceleration, body->force, body->mass );
-  dVec3_t delta_velo = {0};
+  dVec3_t delta_velo = {0, 0, 0};
   d_ScaleMultiplyVec3f( &delta_velo, acceleration, dt );
   d_AddTwoVec3f( &body->velocity, body->velocity, delta_velo );
-  d_LimitVec3f( &body->velocity, body->velocity, body->max_speed );
+  //d_LimitVec3f( &body->velocity, body->velocity, body->max_speed );
   
-  dVec3_t new_position = {0};
+  dVec3_t new_position = {0, 0, 0};
   d_ScaleMultiplyVec3f( &new_position, body->velocity, dt );
   d_AddTwoVec3f( &trans->position, trans->position, new_position );
   body->force = (dVec3_t){0, 0, 0};
