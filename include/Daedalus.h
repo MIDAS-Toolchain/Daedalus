@@ -28,6 +28,11 @@
 
 #define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
 
+#define INDEX_3( x, y, z, width, height ) ( ( z * ( width * height ) )\
+    + ( y * height ) + x )
+
+#define INDEX_2( x, y, height ) ( ( x * height ) + y )
+
 #define D_PI 3.1415926535897932384626433832
 
 #define D_ASSERT(condition, msg, file, line, func) \
