@@ -607,6 +607,9 @@ double d_QuaternionInDegrees( dQuaternion_t q );
 
 /* Matrix Operations */
 void d_MatrixClearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity matrix
+void d_MatrixIdentityf( dMat4x4_t* matrix );
+void d_MatrixOrthoProjection( dMat4x4_t* matrix, float left, float right,
+                              float bottom, float top, float near, float far );
 void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the x axis
 void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the y axis
 void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the z axis

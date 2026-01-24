@@ -37,6 +37,71 @@ void d_MatrixClearf( dMat4x4_t* matrix )
 }
 
 /*
+  4x4 Identity Matrix
+
+  Parameters:
+    matrix: pointer to matrix
+  
+  Returns:
+    void
+*/
+void d_MatrixIdentityf( dMat4x4_t* matrix )
+{
+  matrix->m[0]  = 1.0f;
+  matrix->m[1]  = 0.0f;
+  matrix->m[2]  = 0.0f;
+  matrix->m[3]  = 0.0f;
+
+  matrix->m[4]  = 0.0f;
+  matrix->m[5]  = 1.0f;
+  matrix->m[6]  = 0.0f;
+  matrix->m[7]  = 0.0f;
+
+  matrix->m[8]  = 0.0f;
+  matrix->m[9]  = 0.0f;
+  matrix->m[10] = 1.0f;
+  matrix->m[11] = 0.0f;
+
+  matrix->m[12] = 0.0f;
+  matrix->m[13] = 0.0f;
+  matrix->m[14] = 0.0f;
+  matrix->m[15] = 1.0f;
+}
+
+/*
+  Create a 4x4 Orthographic Projection Matrix
+
+  Parameters:
+    matrix: pointer to matrix
+  
+  Returns:
+    void
+*/
+void d_MatrixOrthoProjection( dMat4x4_t* matrix, float left, float right,
+                              float bottom, float top, float near, float far )
+{
+  matrix->m[0]  = 2.0f / ( right - left );
+  matrix->m[1]  = 0.0f;
+  matrix->m[2]  = 0.0f;
+  matrix->m[3]  = 0.0f;
+
+  matrix->m[4]  = 0.0f;
+  matrix->m[5]  = 2.0f / ( bottom - top );
+  matrix->m[6]  = 0.0f;
+  matrix->m[7]  = 0.0f;
+
+  matrix->m[8]  = 0.0f;
+  matrix->m[9]  = 0.0f;
+  matrix->m[10] = -2.0f / ( far - near );
+  matrix->m[11] = 0.0f;
+
+  matrix->m[12] = -( right + left ) / ( right - left );
+  matrix->m[13] = -( top + bottom ) / ( top - bottom );
+  matrix->m[14] = -( far + near ) / ( far - near );
+  matrix->m[15] = 1.0f;
+}
+
+/*
   Rotate a Matrix about the X Axis
 
   Parameters:
