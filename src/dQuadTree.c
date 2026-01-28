@@ -33,6 +33,14 @@ uint8_t d_QuadTreeContains( dRectf_t boundary, dVec3_t p )
            p.y <= boundary.y + boundary.h );
 }
 
+uint8_t d_QuadTreeIntersects(  dRectf_t range, dRectf_t boundary )
+{
+  return !( range.x - range.w > boundary.x - boundary.w ||
+            range.x + range.w < boundary.x + boundary.w ||
+            range.y - range.h > boundary.y - boundary.h ||
+            range.y + range.h < boundary.y + boundary.h );
+}
+
 void d_QuadTreeSubdivide( dQuadTree_t* node )
 {
   if ( node->is_divided ) return;
@@ -63,7 +71,6 @@ void d_QuadTreeSubdivide( dQuadTree_t* node )
   }
 
   node->count = 0;
-
 }
 
 uint8_t d_QuadTreeInsert( dQuadTree_t* node, dVec3_t p )
@@ -94,6 +101,39 @@ uint8_t d_QuadTreeInsert( dQuadTree_t* node, dVec3_t p )
   }
 
   return 0;
+}
+
+dArray_t* d_QuadTreeQuery( dQuadTree_t* root, dRectf_t range )
+{
+  dArray_t* found = d_ArrayInit( 10, sizeof( dVec3_t ) );
+
+  if ( !d_QuadTreeIntersects( range, root->rect ) )
+  {
+    return NULL;
+  }
+  
+  else
+  {
+    for ( int i = 0; i < root->count; i++ )
+    {
+      dVec3_t p = root->points[i];
+      if ( d_QuadTreeContains( range, p ) )
+      {
+
+        d_ArrayAppend( found, &p );
+      }
+    }
+
+    if ( root->is_divided )
+    {
+      d_QuadTreeQuery( root->ne, range );
+      d_QuadTreeQuery( root->nw, range );
+      d_QuadTreeQuery( root->se, range );
+      d_QuadTreeQuery( root->sw, range );
+    }
+  }
+
+  return found;
 }
 
 void d_QuadTreeFree( dQuadTree_t* node )

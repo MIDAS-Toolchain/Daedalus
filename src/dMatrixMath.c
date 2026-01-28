@@ -113,25 +113,10 @@ void d_MatrixOrthoProjection( dMat4x4_t* matrix, float left, float right,
 */
 void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad )
 {
-  matrix->m[0]  =  1.0f;
-  matrix->m[1]  =  0.0f;
-  matrix->m[2]  =  0.0f;
-  matrix->m[3]  =  0.0f;
-
-  matrix->m[4]  =  0.0f;
   matrix->m[5]  =  cosf( angle_rad );
   matrix->m[6]  =  sinf( angle_rad );
-  matrix->m[7]  =  0.0f;
-  
-  matrix->m[8]  =  0.0f;
   matrix->m[9]  = -sinf( angle_rad );
   matrix->m[10] =  cosf( angle_rad );
-  matrix->m[11] =  0.0f;
-  
-  matrix->m[12] =  0.0f;
-  matrix->m[13] =  0.0f;
-  matrix->m[14] =  0.0f;
-  matrix->m[15] =  1.0f;
 }
 
 /*
@@ -147,24 +132,9 @@ void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad )
 void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad )
 {
   matrix->m[0]  =  cosf( angle_rad );
-  matrix->m[1]  =  0.0f;
   matrix->m[2]  =  sinf( angle_rad );
-  matrix->m[3]  =  0.0f;
-  
-  matrix->m[4]  =  0.0f;
-  matrix->m[5]  =  1.0f;
-  matrix->m[6]  =  0.0f;
-  matrix->m[7]  =  0.0f;
-
   matrix->m[8]  = -sinf( angle_rad );
-  matrix->m[9]  =  0.0f;
   matrix->m[10] =  cosf( angle_rad );
-  matrix->m[11] =  0.0f;
-  
-  matrix->m[12] =  0.0f;
-  matrix->m[13] =  0.0f;
-  matrix->m[14] =  0.0f;
-  matrix->m[15] =  1.0f;
 }
 
 /*
@@ -181,23 +151,8 @@ void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad )
 {
   matrix->m[0]  =  cosf( angle_rad );
   matrix->m[1]  =  sinf( angle_rad );
-  matrix->m[2]  =  0.0f;
-  matrix->m[3]  =  0.0f;
-
   matrix->m[4]  = -sinf( angle_rad );
   matrix->m[5]  =  cosf( angle_rad );
-  matrix->m[6]  =  0.0f;
-  matrix->m[7]  =  0.0f;
-
-  matrix->m[8]  =  0.0f;
-  matrix->m[9]  =  0.0f;
-  matrix->m[10] =  1.0f;
-  matrix->m[11] =  0.0f;
-
-  matrix->m[12] =  0.0f;
-  matrix->m[13] =  0.0f;
-  matrix->m[14] =  0.0f;
-  matrix->m[15] =  1.0f;
 }
 
 /*

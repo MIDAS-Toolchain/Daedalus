@@ -1866,6 +1866,7 @@ dQuadTree_t* d_QuadTreeCreate( dRectf_t boundary );
 uint8_t d_QuadTreeContains( dRectf_t boundary, dVec3_t p );
 void d_QuadTreeSubdivide( dQuadTree_t* node );
 uint8_t d_QuadTreeInsert( dQuadTree_t* node, dVec3_t p );
+dArray_t* d_QuadTreeQuery( dQuadTree_t* root, dRectf_t range );
 void d_QuadTreeFree( dQuadTree_t* node );
 
 /* Kinematic Body 2D  */
