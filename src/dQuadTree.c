@@ -3,6 +3,8 @@
 
 #include "Daedalus.h"
 
+static void QueryInternal( dQuadTree_t* root, dRectf_t range, dArray_t* found );
+
 dQuadTree_t* d_QuadTreeCreate( dRectf_t boundary )
 {
   dQuadTree_t* new_tree = malloc( sizeof( dQuadTree_t ) );
@@ -35,10 +37,10 @@ uint8_t d_QuadTreeContains( dRectf_t boundary, dVec3_t p )
 
 uint8_t d_QuadTreeIntersects(  dRectf_t range, dRectf_t boundary )
 {
-  return !( range.x - range.w > boundary.x - boundary.w ||
-            range.x + range.w < boundary.x + boundary.w ||
-            range.y - range.h > boundary.y - boundary.h ||
-            range.y + range.h < boundary.y + boundary.h );
+  return !( range.x - range.w > boundary.x + boundary.w ||
+            range.x + range.w < boundary.x - boundary.w ||
+            range.y - range.h > boundary.y + boundary.h ||
+            range.y + range.h < boundary.y - boundary.h );
 }
 
 void d_QuadTreeSubdivide( dQuadTree_t* node )
@@ -105,34 +107,40 @@ uint8_t d_QuadTreeInsert( dQuadTree_t* node, dVec3_t p )
 
 dArray_t* d_QuadTreeQuery( dQuadTree_t* root, dRectf_t range )
 {
+  if ( root == NULL ) return NULL;
+  
   dArray_t* found = d_ArrayInit( 10, sizeof( dVec3_t ) );
+  QueryInternal( root, range, found );
+  return found;
+}
+
+static void QueryInternal( dQuadTree_t* root, dRectf_t range, dArray_t* found )
+{
+  if ( root == NULL || found == NULL ) return;
 
   if ( !d_QuadTreeIntersects( range, root->rect ) )
   {
-    return NULL;
+    return;
   }
   
   else
   {
     for ( int i = 0; i < root->count; i++ )
     {
-      dVec3_t p = root->points[i];
-      if ( d_QuadTreeContains( range, p ) )
+      if ( d_QuadTreeContains( range, root->points[i] ) )
       {
-        d_ArrayAppend( found, &p );
+        d_ArrayAppend( found, &root->points[i] );
       }
     }
 
     if ( root->is_divided )
     {
-      d_QuadTreeQuery( root->ne, range );
-      d_QuadTreeQuery( root->nw, range );
-      d_QuadTreeQuery( root->se, range );
-      d_QuadTreeQuery( root->sw, range );
+      QueryInternal( root->ne, range, found );
+      QueryInternal( root->nw, range, found );
+      QueryInternal( root->se, range, found );
+      QueryInternal( root->sw, range, found );
     }
   }
-
-  return found;
 }
 
 void d_QuadTreeFree( dQuadTree_t* node )

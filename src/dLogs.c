@@ -530,8 +530,8 @@ void d_DestroyLogger(dLogger_t* logger)
     }
 
     // Free all resources
-    if (logger->handlers) d_ArrayDestroy(logger->handlers);
-    if (logger->contexts) d_ArrayDestroy(logger->contexts);
+    if (logger->handlers) d_ArrayDestroy(logger->handlers, 0);
+    if (logger->contexts) d_ArrayDestroy(logger->contexts, 0);
     if (logger->format_buffer) d_StringDestroy(logger->format_buffer);
     if (logger->mutex) {
         MUTEX_DESTROY((dMutex_t*)logger->mutex);

@@ -2640,16 +2640,19 @@ dArray_t* d_ArrayInit( int capacity, size_t element_size );
  * @brief Destroy a dynamic array.
  * 
  * @param array The array to destroy.
+ * @param Malloced is asking does your array malloc data for each leaf?
+ *                 or are the on the stack?
  * 
  * @return: 0 on success, 1 on failure.
  * 
  * -- Frees both the data buffer and the array structure itself
  * -- After calling this function, the pointer is invalid and should not be used
+
  * 
  * Example: `d_ArrayDestroy(array);`
  * This destroys the dynamic array and frees its memory.
  */
-int d_ArrayDestroy( dArray_t* array );
+int d_ArrayDestroy( dArray_t* array, uint8_t malloced );
 
 /**
  * @brief Resize the internal data buffer of a dynamic array.

@@ -21,7 +21,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     }
 
     // Finally, destroy the array structure itself.
-    d_ArrayDestroy(string_array);
+    d_ArrayDestroy(string_array, 0);
 }
 
 dArray_t* d_SplitString(const char* text, const char* delimiter) {

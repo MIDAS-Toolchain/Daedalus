@@ -265,7 +265,7 @@ int d_StaticTableDestroy(dStaticTable_t** table)
     }
 
     // Free buckets array
-    d_ArrayDestroy(t->buckets);
+    d_ArrayDestroy(t->buckets, 0);
 
     // Free table structure
     free(t);
@@ -505,7 +505,7 @@ dArray_t* d_StaticTableGetAllKeys(const dStaticTable_t* table)
                 // Append key data to result array
                 if (d_ArrayAppend(all_keys_array, entry->key_data) != 0) {
                     d_LogErrorF("Failed to append key to result array at bucket %zu.", i);
-                    d_ArrayDestroy(all_keys_array);
+                    d_ArrayDestroy(all_keys_array, 0);
                     return NULL;
                 }
                 keys_collected++;
@@ -567,7 +567,7 @@ dArray_t* d_StaticTableGetAllValues(const dStaticTable_t* table)
                 // Append value data to result array
                 if (d_ArrayAppend(all_values_array, entry->value_data) != 0) {
                     d_LogErrorF("Failed to append value to result array at bucket %zu.", i);
-                    d_ArrayDestroy(all_values_array);
+                    d_ArrayDestroy(all_values_array, 0);
                     return NULL;
                 }
                 values_collected++;
@@ -769,7 +769,7 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
     dArray_t* all_values = d_StaticTableGetAllValues(source_table);
     if (!all_values) {
         d_LogError("Failed to collect values for rebucketing.");
-        d_ArrayDestroy(all_keys);
+        d_ArrayDestroy(all_keys, 0);
         return NULL;
     }
 
@@ -781,8 +781,8 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
         d_LogError("Failed to allocate pointer arrays for rebucketing.");
         free(key_ptrs);
         free(value_ptrs);
-        d_ArrayDestroy(all_keys);
-        d_ArrayDestroy(all_values);
+        d_ArrayDestroy(all_keys, 0);
+        d_ArrayDestroy(all_values, 0);
         return NULL;
     }
 
@@ -795,8 +795,8 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
             d_LogError("Failed to access array data during rebucketing.");
             free(key_ptrs);
             free(value_ptrs);
-            d_ArrayDestroy(all_keys);
-            d_ArrayDestroy(all_values);
+            d_ArrayDestroy(all_keys, 0);
+            d_ArrayDestroy(all_values, 0);
             return NULL;
         }
         
@@ -819,8 +819,8 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
     // Cleanup temporary arrays
     free(key_ptrs);
     free(value_ptrs);
-    d_ArrayDestroy(all_keys);
-    d_ArrayDestroy(all_values);
+    d_ArrayDestroy(all_keys, 0);
+    d_ArrayDestroy(all_values, 0);
 
     if (new_table) {
         d_LogInfoF("Successfully rebucketed static table from %zu to %zu buckets with %zu keys.",
@@ -875,7 +875,7 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
     dArray_t* all_values = d_StaticTableGetAllValues(source_table);
     if (!all_values) {
         d_LogError("Failed to collect values for cloning.");
-        d_ArrayDestroy(all_keys);
+        d_ArrayDestroy(all_keys, 0);
         return NULL;
     }
 
@@ -888,8 +888,8 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
         d_LogError("Failed to allocate pointer arrays for cloning operation.");
         free(key_ptrs); // It's safe to free NULL
         free(value_ptrs);
-        d_ArrayDestroy(all_keys);
-        d_ArrayDestroy(all_values);
+        d_ArrayDestroy(all_keys, 0);
+        d_ArrayDestroy(all_values, 0);
         return NULL;
     }
     
@@ -901,8 +901,8 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
              d_LogError("Failed to retrieve data from temporary arrays during cloning.");
              free(key_ptrs);
              free(value_ptrs);
-             d_ArrayDestroy(all_keys);
-             d_ArrayDestroy(all_values);
+             d_ArrayDestroy(all_keys, 0);
+             d_ArrayDestroy(all_values, 0);
              return NULL;
         }
     }
@@ -922,8 +922,8 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
     // Clean up all temporary allocations
     free(key_ptrs);
     free(value_ptrs);
-    d_ArrayDestroy(all_keys);
-    d_ArrayDestroy(all_values);
+    d_ArrayDestroy(all_keys, 0);
+    d_ArrayDestroy(all_values, 0);
 
     if (new_table) {
         d_LogInfoF("Successfully cloned static table with %zu keys.", source_table->num_keys);

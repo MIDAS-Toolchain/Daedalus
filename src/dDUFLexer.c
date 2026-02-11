@@ -404,5 +404,5 @@ void d_DUFLexFree(dArray_t* tokens)
         }
     }
 
-    d_ArrayDestroy(tokens);
+    d_ArrayDestroy(tokens, 0);
 }

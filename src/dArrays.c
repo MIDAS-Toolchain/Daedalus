@@ -38,17 +38,19 @@ dArray_t* d_ArrayInit(int capacity, size_t element_size) {
     return array;
 }
 
-int d_ArrayDestroy(dArray_t* array) {
+int d_ArrayDestroy( dArray_t* array, uint8_t malloced ) {
   if ( !array ) return 1;
   
   if ( array->data )
   {
     for ( int i = 0; i < array->count; i++ )
     {
-      if ( array->data[i] != NULL )
+      if ( array->data[i] != NULL && malloced )
       {
         free( array->data[i] );
       }
+
+      array->data[i] = NULL;
     }
 
     free( array->data );
