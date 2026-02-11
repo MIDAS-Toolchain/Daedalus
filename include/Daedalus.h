@@ -1864,6 +1864,7 @@ int d_CompareDString(const void* key1, const void* key2, size_t key_size);
 /* Quad Tree */
 dQuadTree_t* d_QuadTreeCreate( dRectf_t boundary );
 uint8_t d_QuadTreeContains( dRectf_t boundary, dVec3_t p );
+uint8_t d_QuadTreeIntersects(  dRectf_t range, dRectf_t boundary );
 void d_QuadTreeSubdivide( dQuadTree_t* node );
 uint8_t d_QuadTreeInsert( dQuadTree_t* node, dVec3_t p );
 dArray_t* d_QuadTreeQuery( dQuadTree_t* root, dRectf_t range );

@@ -119,7 +119,6 @@ dArray_t* d_QuadTreeQuery( dQuadTree_t* root, dRectf_t range )
       dVec3_t p = root->points[i];
       if ( d_QuadTreeContains( range, p ) )
       {
-
         d_ArrayAppend( found, &p );
       }
     }

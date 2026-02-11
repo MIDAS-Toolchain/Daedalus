@@ -41,12 +41,18 @@ dArray_t* d_ArrayInit(int capacity, size_t element_size) {
 int d_ArrayDestroy(dArray_t* array) {
   if ( !array ) return 1;
   
-  for ( int i = 0; i < array->count; i++ )
+  if ( array->data )
   {
-    free( array->data[i] );
+    for ( int i = 0; i < array->count; i++ )
+    {
+      if ( array->data[i] != NULL )
+      {
+        free( array->data[i] );
+      }
+    }
+
+    free( array->data );
   }
-  
-  free( array->data );
 
   array->data = NULL;
   array->element_size = array->capacity = 0;
