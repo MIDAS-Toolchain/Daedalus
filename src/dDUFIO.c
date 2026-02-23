@@ -204,12 +204,13 @@ int d_DUFWriteFile(dDUFValue_t* root, const char* filename)
         return -1;
     }
 
-    size_t written = fwrite(d_StringPeek(content), 1, d_StringGetLength(content), f);
+    size_t len = d_StringGetLength(content);
+    size_t written = fwrite(d_StringPeek(content), 1, len, f);
     fclose(f);
 
     d_StringDestroy(content);
 
-    if (written != d_StringGetLength(content)) {
+    if (written != len) {
         return -1;
     }
 

@@ -138,6 +138,7 @@ static Token_t* lexer_read_string(Lexer_t* lex)
     // Read string content
     if (is_multiline) {
         // Multi-line string: read until """
+        bool closed = false;
         while (lexer_peek(lex) != '\0') {
             if (lexer_peek(lex) == '"') {
                 size_t saved_pos = lex->pos;
@@ -150,6 +151,7 @@ static Token_t* lexer_read_string(Lexer_t* lex)
                     if (lexer_peek(lex) == '"') {
                         lexer_advance(lex);
                         // Found closing """
+                        closed = true;
                         break;
                     }
                 }
@@ -162,6 +164,11 @@ static Token_t* lexer_read_string(Lexer_t* lex)
 
             char c = lexer_advance(lex);
             d_StringAppendChar(str, c);
+        }
+
+        if (!closed) {
+            d_StringDestroy(str);
+            return token_create(TOK_ERROR, "Unterminated multi-line string", start_line, start_column);
         }
     } else {
         // Single-line string: read until closing "
