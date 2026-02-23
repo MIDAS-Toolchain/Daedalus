@@ -11,7 +11,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     }
 
     // Iterate through the array and free each string builder.
-    for (int i = 0; i < string_array->count; i++) {
+    for (size_t i = 0; i < string_array->count; i++) {
         // Get the location of the dString_t* stored in the array's data.
         dString_t** sb_ptr_location = (dString_t**)d_ArrayGet(string_array, i);
         if (sb_ptr_location != NULL && *sb_ptr_location != NULL) {
@@ -21,7 +21,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     }
 
     // Finally, destroy the array structure itself.
-    d_ArrayDestroy(string_array, 0);
+    d_ArrayDestroy(string_array);
 }
 
 dArray_t* d_SplitString(const char* text, const char* delimiter) {

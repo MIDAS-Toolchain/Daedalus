@@ -13,8 +13,8 @@ A high-performance C library providing mathematical tools, data structures, and 
 ### 🔧 Native Development (System-Wide)
 
 ```sh
-git clone https://github.com/your-repo/daedalus.git
-cd daedalus
+git clone https://github.com/McCoy1701/Daedalus.git
+cd Daedalus
 make shared          # Build shared library
 sudo make install    # Install to /usr/lib/ and /usr/include/
 ```
@@ -29,18 +29,19 @@ sudo make install    # Install to /usr/lib/ and /usr/include/
 ### 🌐 Emscripten Web Projects
 
 ```sh
-make EM              # Creates bin/libDaedalus.a static library
+make EM              # Creates bin/libArchimedes.a static library
+make EMARCH          # Creates bin/libDaedalus.a static library
 ```
 
 **Copy these files to your Emscripten project:**
 
-`bin/libDaedalus.a` → your lib/ directory
+`bin/libArchimedes.a` → your lib/ directory
 `include/Daedalus.h` → your include/ directory
 
 **Then compile with:**
 
 ```sh
-emcc your_code.c lib/libDaedalus.a -I include/ -o output.html
+emcc your_code.c lib/libArchimedes.a -I include/ -sALLOW_MEMORY_GROWTH -o output.html
 ```
 
 ### 🧹 Cleanup & Maintenance
@@ -90,14 +91,14 @@ Each guide includes quick-start examples, complete API reference, best practices
 
 ## 🎯 Quick Examples
 
-### Dynamic Strings - Python-like String Operations
+### Dynamic Strings
 
 ```c
-dString_t* path = d_StringInit();
-const char* parts[] = {"usr", "local", "bin"};
-d_JoinStrings(path, parts, 3, "/");
-printf("%s\n", d_StringPeek(path));  // Output: usr/local/bin
-d_StringDestroy(path);
+dString_t* name = d_StringInit();
+d_StringAppend(name, "Player", 0);
+d_StringAppend(name, " Character", 0);
+printf("%s\n", d_StringPeek(name));  // Output: Player Character
+d_StringDestroy(name);
 ```
 
 ### Dynamic Arrays - Automatic Growth
@@ -123,17 +124,11 @@ d_TableSet(config, &key, &value);
 d_TableDestroy(&config);
 ```
 
-### Logging - Professional Output
+### Logging
 
 ```c
 d_LogInfoF("Player %s joined at position (%.2f, %.2f)", name, x, y);
 d_LogErrorF("Connection failed: code %d", error_code);
-
-// Structured logging with JSON output
-dLogStructured_t* log = d_LogStructured(D_LOG_LEVEL_INFO);
-d_LogStructured_Field(log, "event", "user_login");
-d_LogStructured_FieldInt(log, "user_id", 12345);
-d_LogStructured_Commit(log);
 ```
 
 For comprehensive examples and complete API documentation, see the [wiki documentation](https://github.com/McCoy1701/Daedalus/wiki).

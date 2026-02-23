@@ -196,7 +196,7 @@ int _d_TableDestroy_impl(dTable_t** table, const char* file, int line, const cha
         }
     }
 
-    d_ArrayDestroy(t->buckets, 0);
+    d_ArrayDestroy(t->buckets);
     free(t);
     *table = NULL;
 
@@ -564,7 +564,7 @@ int d_TableRehash(dTable_t* table, size_t new_num_buckets)
     }
 
     // Destroy old buckets array
-    d_ArrayDestroy(old_buckets_array, 0);
+    d_ArrayDestroy(old_buckets_array);
 
     d_LogInfoF("Rehashed table from %zu to %zu buckets. Entries: %zu (expected: %zu).",
                old_num_buckets, actual_new_num_buckets, table->count, old_count);
@@ -603,7 +603,7 @@ dArray_t* d_TableGetAllKeys(const dTable_t* table)
                 // Append key data to result array
                 if (d_ArrayAppend(all_keys_array, entry->key_data) != 0) {
                     d_LogErrorF("Failed to append key to result array at bucket %zu.", i);
-                    d_ArrayDestroy(all_keys_array, 0);
+                    d_ArrayDestroy(all_keys_array);
                     return NULL;
                 }
                 keys_collected++;
@@ -647,7 +647,7 @@ dArray_t* d_TableGetAllValues(const dTable_t* table)
                 // Append value data to result array
                 if (d_ArrayAppend(all_values_array, entry->value_data) != 0) {
                     d_LogErrorF("Failed to append value to result array at bucket %zu.", i);
-                    d_ArrayDestroy(all_values_array, 0);
+                    d_ArrayDestroy(all_values_array);
                     return NULL;
                 }
                 values_collected++;

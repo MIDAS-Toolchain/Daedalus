@@ -227,11 +227,24 @@ typedef struct _dQuadTree_t
  */
 typedef struct          // dArray_t
 {
-  int capacity;      /**< The current maximum number of elements the array can hold before reallocation. */
-  int count;         /**< The current number of active elements stored in the array. */
+  size_t capacity;      /**< The current maximum number of elements the array can hold before reallocation. */
+  size_t count;         /**< The current number of active elements stored in the array. */
   size_t element_size;  /**< The size in bytes of each individual element stored in the array. */
-  void** data;           /**< A pointer to the dynamically allocated memory block holding the elements. */
+  void* data;           /**< A pointer to the dynamically allocated memory block holding the elements. */
 } dArray_t;
+
+/**
+ * @brief Represents a raw pointer array (void**) that grows as needed.
+ *
+ * Stores raw pointers — the caller manages element lifetime.
+ * Use this when you need an array of pointers to separately allocated objects.
+ */
+typedef struct          // dRawArray_t
+{
+  int capacity;      /**< The current maximum number of pointers the array can hold. */
+  int count;         /**< The current number of active pointers stored in the array. */
+  void** data;       /**< A pointer to the dynamically allocated array of void pointers. */
+} dRawArray_t;
 
 /**
  * @brief Represents a static (fixed-size) array.
@@ -365,7 +378,7 @@ typedef struct          // dTable_t
  * @warning Keys cannot be added or removed after initialization. The structure is optimized
  * for use cases where the complete key set is known beforehand.
  */
-typedef struct          // dStaticTable_t  
+typedef struct          // dStaticTable_t
 {
     dArray_t* buckets;            /**< An array of `dLinkedList_t` pointers for collision resolution (same as dTable_t). */
     size_t num_buckets;           /**< The fixed total number of buckets in the hash table. */
@@ -2618,238 +2631,230 @@ int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
      for (dLogContext_t* _ctx = d_PushLogContext(name); _ctx; d_PopLogContext(_ctx), _ctx = NULL) \
          for (d_LogContext_EnableTiming(_ctx); _ctx; _ctx = NULL)
 
+/* --- Dynamic Arrays (value-copy) --- */
+
 /**
  * @brief Initialize a Dynamic Array.
- * 
+ *
  * @param capacity The initial capacity of the array in elements.
  * @param element_size The size of each element in bytes.
- * 
+ *
  * @return A pointer to the new array, or NULL on error.
- * 
- * -- Must be destroyed with d_DestroyArray() to free memory
- * -- Initial count is 0 even though capacity may be larger
- * -- Elements can be any type as long as element_size is correct
- * -- Capacity of 0 is allowed but array cannot store elements until resized
- * 
+ *
  * Example: `dArray_t* array = d_ArrayInit(10, sizeof(int));`
- * This creates a new array with a capacity of 10 elements, each of size 4 bytes.
  */
-dArray_t* d_ArrayInit( int capacity, size_t element_size );
+dArray_t* d_ArrayInit( size_t capacity, size_t element_size );
 
 /**
- * @brief Destroy a dynamic array.
- * 
+ * @brief Destroy a dynamic array. Frees the data buffer and the struct.
+ *
  * @param array The array to destroy.
- * @param Malloced is asking does your array malloc data for each leaf?
- *                 or are the on the stack?
- * 
- * @return: 0 on success, 1 on failure.
- * 
- * -- Frees both the data buffer and the array structure itself
- * -- After calling this function, the pointer is invalid and should not be used
-
- * 
- * Example: `d_ArrayDestroy(array);`
- * This destroys the dynamic array and frees its memory.
+ * @return 0 on success, 1 on failure.
  */
-int d_ArrayDestroy( dArray_t* array, uint8_t malloced );
+int d_ArrayDestroy( dArray_t* array );
 
 /**
  * @brief Resize the internal data buffer of a dynamic array.
  *
- * This function adjusts the allocated memory for the array's elements.
- *
- * @param array A pointer to the dynamic array whose internal buffer is to be resized.
- * @param new_size_in_bytes The desired new total size of the internal data buffer in bytes.
- * This will determine the new capacity in elements.
- *
+ * @param array The array to resize.
+ * @param new_size_in_bytes The desired new total size in bytes.
  * @return 0 on success, 1 on failure.
- *
- * @note If `new_size_in_bytes` is 0, the internal data buffer will be freed, and the array's
- * capacity and count will be reset to 0.
- * @note If `new_size_in_bytes` is larger than the current allocated size, the data buffer
- * is reallocated, potentially moving to a new memory location. Existing data (up to
- * the old capacity) is preserved.
- * @note If `new_size_in_bytes` is smaller than the current allocated size, the data buffer
- * is truncated. If the current `count` of elements exceeds the new capacity, `count`
- * will be adjusted down to match the new capacity, effectively truncating the array's
- * contents.
- * @warning This function only affects the internal data buffer (`array->data`). The `dArray_t* array`
- * pointer itself remains valid and points to the same `dArray_t` structure.
- * Pointers obtained previously via `d_IndexDataFromArray` (or similar direct access)
- * will become invalid if the underlying `array->data` buffer is reallocated and moved.
- *
- * Example: `d_ArrayResize(myArray, 10 * sizeof(int));`
- * This resizes the internal buffer of `myArray` to accommodate 10 integer elements.
- * If `myArray` previously held more than 10 elements, its `count` will be truncated.
  */
-int d_ArrayResize( dArray_t* array );
+int d_ArrayResize( dArray_t* array, size_t new_size_in_bytes );
 
 /**
  * @brief Grow the array by a number of additional bytes.
- * 
+ *
  * @param array The array to grow.
  * @param additional_bytes The number of bytes to add.
- * 
  * @return 0 on success, 1 on failure.
- * 
- * -- Convenience function that calls d_ArrayResize() internally
- * 
- * Example: `d_ArrayGrow(array, 10 * sizeof(int));`
- * This grows the dynamic array by 10 elements, each of size 4 bytes.
  */
-int d_ArrayGrow( dArray_t* array, int additional_capacity );
+int d_ArrayGrow( dArray_t* array, size_t additional_bytes );
 
 /**
  * @brief Append an element to the end of the dynamic array.
+ * Copies element_size bytes from data into the array.
  *
- * This function adds a new element to the array. If the array's current capacity
- * is insufficient, it will automatically grow to accommodate the new element,
- * typically by doubling its capacity.
- *
- * @param array A pointer to the dynamic array to append to.
- * @param data A pointer to the element data to copy into the array.
- * The data pointed to will be copied by `element_size` bytes.
- *
+ * @param array The array to append to.
+ * @param data A pointer to the element data to copy.
  * @return 0 on success, 1 on failure.
  *
- * @note Fails if `array` or `data` is NULL.
- * @note If the array's capacity is reached, it will attempt to grow its
- * internal buffer. If reallocation fails, the append operation will fail.
- * @note Copies `element_size` bytes from the `data` pointer into the array.
- * @note Increments the array's `count` on successful append.
- *
- * Example: `int my_value = 123; int result = d_ArrayAppend(myArray, &my_value);`
- * This appends an integer value to the end of `myArray`.
+ * Example: `int val = 42; d_ArrayAppend(myArray, &val);`
  */
 int d_ArrayAppend( dArray_t* array, void* data );
 
 /**
  * @brief Get a pointer to the data at a specific index.
- * 
+ *
  * @param array The array to get data from.
  * @param index The index of the element to get.
- * 
- * @return A pointer to the element data, or NULL if index is out of bounds.
- * 
- * -- Returns NULL if array is NULL or index >= count
- * -- Returned pointer is valid until the array is modified or destroyed
- * -- Caller can read/write through the returned pointer safely
- * -- Use appropriate casting: int* ptr = (int*)d_ArrayGet(array, 0)
- * -- Index must be less than count, not capacity (only counts appended elements)
- * 
- * Example: `void* data = d_ArrayGet(array, 0);`
- * This retrieves the first element from the dynamic array.
+ * @return A pointer to the element data, or NULL if out of bounds.
+ *
+ * Example: `int* ptr = (int*)d_ArrayGet(array, 0);`
  */
-void* d_ArrayGet(dArray_t* array, int index);
+void* d_ArrayGet( dArray_t* array, size_t index );
 
 /**
- * @brief Remove and return the last element from the array.
+ * @brief Remove and return a pointer to the last element.
+ * Pointer is valid until the next append or modification.
  *
  * @param array The array to pop from.
- *
- * @return A pointer to the last element's data, or NULL if array is empty.
- *
- * -- Decrements count but does not free memory (element data remains in buffer)
- * -- Returned pointer becomes invalid after next append or array modification
- * -- Implements stack-like behavior for dynamic arrays
- * -- Memory is not reallocated, only the count is decremented for efficiency
- *
- * Example: `void* data = d_ArrayPop(array);`
- * This removes and returns the last element from the dynamic array.
+ * @return A pointer to the last element's data, or NULL if empty.
  */
-void* d_ArrayPop(dArray_t* array);
+void* d_ArrayPop( dArray_t* array );
 
 /**
- * @brief Clear all elements from the array (sets count to 0).
+ * @brief Clear all elements (sets count to 0). Does not free memory.
  *
  * @param array The array to clear.
- *
  * @return 0 on success, 1 on error.
- *
- * -- Sets count to 0 but does not free memory or reduce capacity
- * -- Element data remains in buffer but is considered removed
- * -- More efficient than destroying and recreating the array
- * -- Can reuse the cleared array immediately with d_ArrayAppend
- *
- * Example: `d_ArrayClear(array);`
- * This removes all elements from the array without deallocating memory.
  */
-int d_ArrayClear(dArray_t* array);
+int d_ArrayClear( dArray_t* array );
 
 /**
- * @brief Insert data at a specific index in the array
- * 
- * @param array The array to insert into
- * @param data Pointer to the data to insert
- * @param index The index where to insert the data
- * 
- * @return 0 on success, 1 on failure
- * 
- * -- Shifts existing elements to the right to make space
- * -- Grows the array capacity if needed
- * -- index must be <= array->count (can insert at end)
- * -- Uses memmove for safe overlapping memory operations
- * 
- * Example: `d_ArrayInsert(array, &value, 2);`
- * This inserts a value at index 2, shifting existing elements to the right.
+ * @brief Insert data at a specific index. Shifts elements right with memmove.
+ *
+ * @param array The array to insert into.
+ * @param data Pointer to the data to insert.
+ * @param index The index where to insert (must be <= count).
+ * @return 0 on success, 1 on failure.
  */
-int d_ArrayInsert(dArray_t* array, void* data, int index);
+int d_ArrayInsert( dArray_t* array, void* data, size_t index );
 
 /**
- * @brief Remove data at a specific index from the array
+ * @brief Remove element at index. Shifts elements left with memmove.
  *
- * @param array The array to remove from
- * @param index The index of the element to remove
- *
- * @return 0 on success, 1 on failure
- *
- * -- Shifts existing elements to the left to fill the gap
- * -- Does not resize the array capacity (use d_ArrayTrimCapacity for that)
- * -- index must be < array->count
- * -- Uses memmove for safe overlapping memory operations
- *
- * Example: `d_ArrayRemove(array, 2);`
- * This removes the element at index 2, shifting remaining elements to the left.
+ * @param array The array to remove from.
+ * @param index The index of the element to remove.
+ * @return 0 on success, 1 on failure.
  */
-int d_ArrayRemove(dArray_t* array, int index);
-
-int d_ArrayRemoveByReference(dArray_t* array, void* index_ptr);
+int d_ArrayRemove( dArray_t* array, size_t index );
 
 /**
- * @brief Clear all elements from the array without deallocating memory
+ * @brief Trim array capacity to match current count.
  *
- * @param array The array to clear
- *
- * @return 0 on success, 1 on failure
- *
- * -- Sets count to 0, preserving capacity for efficient reuse
- * -- O(1) operation - no memory operations performed
- * -- Does not zero memory or shrink capacity
- * -- Ideal for clearing collections that will be reused (hands, queues, temp buffers)
- *
- * Example: `d_ClearArray(array);`
- * This clears all elements from the array, resetting count to 0 while keeping capacity.
+ * @param array The array to trim.
+ * @return 0 on success, 1 on failure.
  */
-int d_ClearArray(dArray_t* array);
+int d_ArrayTrimCapacity( dArray_t* array );
 
 /**
- * @brief Ensure the array has enough capacity for at least min_capacity elements
+ * @brief Ensure the array has enough capacity for at least min_capacity elements.
  *
- * @param array The array to ensure capacity for
- * @param min_capacity Minimum number of elements the array should accommodate
- *
- * @return 0 on success, 1 on failure
- *
- * -- Grows the array if current capacity is less than min_capacity
- * -- Uses exponential growth strategy to minimize reallocations
- * -- Never shrinks the array - use d_ArrayTrimCapacity for that
- * -- Useful for pre-allocating space before bulk operations
- *
- * Example: `d_ArrayEnsureCapacity(array, 100);`
- * This ensures the array has at least 100 elements allocated, growing the array if needed.
+ * @param array The array to ensure capacity for.
+ * @param min_capacity Minimum number of elements the array should accommodate.
+ * @return 0 on success, 1 on failure.
  */
-int d_ArrayEnsureCapacity(dArray_t* array, int min_capacity);
+int d_ArrayEnsureCapacity( dArray_t* array, size_t min_capacity );
+
+
+/* --- Raw Pointer Arrays (void**) --- */
+
+/**
+ * @brief Initialize a raw pointer array.
+ *
+ * @param capacity The initial number of pointer slots.
+ * @return A pointer to the new raw array, or NULL on error.
+ */
+dRawArray_t* d_RawArrayInit( int capacity );
+
+/**
+ * @brief Destroy a raw pointer array.
+ *
+ * @param array The raw array to destroy.
+ * @param malloced If nonzero, free each non-NULL element before destroying.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayDestroy( dRawArray_t* array, uint8_t malloced );
+
+/**
+ * @brief Double the capacity of the raw array.
+ *
+ * @param array The raw array to resize.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayResize( dRawArray_t* array );
+
+/**
+ * @brief Grow the raw array by additional pointer slots.
+ *
+ * @param array The raw array to grow.
+ * @param additional_slots Number of slots to add.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayGrow( dRawArray_t* array, int additional_slots );
+
+/**
+ * @brief Append a pointer to the raw array.
+ *
+ * @param array The raw array to append to.
+ * @param data The pointer to store.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayAppend( dRawArray_t* array, void* data );
+
+/**
+ * @brief Get the pointer at a specific index.
+ *
+ * @param array The raw array.
+ * @param index The index to retrieve.
+ * @return The stored pointer, or NULL if out of bounds.
+ */
+void* d_RawArrayGet( dRawArray_t* array, int index );
+
+/**
+ * @brief Pop the last pointer from the raw array.
+ *
+ * @param array The raw array to pop from.
+ * @return The last pointer, or NULL if empty.
+ */
+void* d_RawArrayPop( dRawArray_t* array );
+
+/**
+ * @brief Clear all pointers in the raw array.
+ *
+ * @param array The raw array to clear.
+ * @param free_elements If nonzero, free each non-NULL element.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayClear( dRawArray_t* array, uint8_t free_elements );
+
+/**
+ * @brief Insert a pointer at a specific index. Shifts elements right.
+ *
+ * @param array The raw array.
+ * @param data The pointer to insert.
+ * @param index The index to insert at.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayInsert( dRawArray_t* array, void* data, int index );
+
+/**
+ * @brief Set the pointer at index to NULL.
+ *
+ * @param array The raw array.
+ * @param index The index to remove.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayRemove( dRawArray_t* array, int index );
+
+/**
+ * @brief Find and NULL out a pointer by reference.
+ *
+ * @param array The raw array.
+ * @param index_ptr The pointer to find and remove.
+ * @return 0 on success, 1 if not found.
+ */
+int d_RawArrayRemoveByReference( dRawArray_t* array, void* index_ptr );
+
+/**
+ * @brief Ensure the raw array has at least min_capacity slots.
+ *
+ * @param array The raw array.
+ * @param min_capacity Minimum number of slots.
+ * @return 0 on success, 1 on failure.
+ */
+int d_RawArrayEnsureCapacity( dRawArray_t* array, int min_capacity );
 
 
 /* --- Static Arrays --- */

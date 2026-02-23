@@ -610,8 +610,8 @@ int d_CompareTable(const void* key1, const void* key2, size_t key_size)
     dArray_t* values1 = d_TableGetAllValues(table1);
 
     if (!keys1 || !values1) {
-        if (keys1) d_ArrayDestroy(keys1, 0);
-        if (values1) d_ArrayDestroy(values1, 0);
+        if (keys1) d_ArrayDestroy(keys1);
+        if (values1) d_ArrayDestroy(values1);
         return 1; // Error occurred
     }
     
@@ -622,21 +622,21 @@ int d_CompareTable(const void* key1, const void* key2, size_t key_size)
         void* corresponding_value = d_TableGet(table2, key_data);
         if (!corresponding_value) {
             // Key not found in table2
-            d_ArrayDestroy(keys1, 0);
-            d_ArrayDestroy(values1, 0);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
 
         // Compare the values
         if (memcmp(value_data, corresponding_value, table1->value_size) != 0) {
-            d_ArrayDestroy(keys1, 0);
-            d_ArrayDestroy(values1, 0);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
     }
 
-    d_ArrayDestroy(keys1, 0);
-    d_ArrayDestroy(values1, 0);
+    d_ArrayDestroy(keys1);
+    d_ArrayDestroy(values1);
     return 0; // All key-value pairs match
 }
 
@@ -679,8 +679,8 @@ int d_CompareStaticTable(const void* key1, const void* key2, size_t key_size)
     dArray_t* values1 = d_StaticTableGetAllValues(table1);
 
     if (!keys1 || !values1) {
-        if (keys1) d_ArrayDestroy(keys1, 0);
-        if (values1) d_ArrayDestroy(values1, 0);
+        if (keys1) d_ArrayDestroy(keys1);
+        if (values1) d_ArrayDestroy(values1);
         return 1; // Error occurred
     }
     
@@ -691,21 +691,21 @@ int d_CompareStaticTable(const void* key1, const void* key2, size_t key_size)
         void* corresponding_value = d_StaticTableGet(table2, key_data);
         if (!corresponding_value) {
             // Key not found in table2
-            d_ArrayDestroy(keys1, 0);
-            d_ArrayDestroy(values1, 0);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
 
         // Compare the values
         if (memcmp(value_data, corresponding_value, table1->value_size) != 0) {
-            d_ArrayDestroy(keys1, 0);
-            d_ArrayDestroy(values1, 0);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
     }
 
-    d_ArrayDestroy(keys1, 0);
-    d_ArrayDestroy(values1, 0);
+    d_ArrayDestroy(keys1);
+    d_ArrayDestroy(values1);
     return 0; // All key-value pairs match
 }
 

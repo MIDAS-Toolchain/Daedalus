@@ -79,7 +79,7 @@ static dDUFError_t* parser_error(Parser_t* p, const char* message)
 
 static Token_t* parser_peek(Parser_t* p)
 {
-    if (p->pos >= p->tokens->count) {
+    if ((size_t)p->pos >= p->tokens->count) {
         return NULL;
     }
 
@@ -398,7 +398,7 @@ dDUFError_t* d_DUFParseString(const char* content, dDUFValue_t** out_value)
     }
 
     // Check for lexer errors
-    for (int i = 0; i < tokens->count; i++) {
+    for (size_t i = 0; i < tokens->count; i++) {
         Token_t** tok_ptr = (Token_t**)d_ArrayGet(tokens, i);
         if (tok_ptr != NULL && *tok_ptr != NULL) {
             Token_t* tok = *tok_ptr;
