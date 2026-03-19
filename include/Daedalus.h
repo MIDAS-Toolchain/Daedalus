@@ -16,6 +16,11 @@
 #define MAX_INPUT_LENGTH         16
 #define QT_CAPACITY               1
 
+#define MAX_UINT8  0xFF
+#define MAX_UINT16 0xFFFF
+#define MAX_UINT32 0xFFFFFFFF
+#define MAX_UINT64 0xFFFFFFFFFFFFFFFF
+
 #define LERP( a, b, t ) ( a + ( b - a ) * t )
 
 #define MAX( x, y ) (((x) > (y)) ? (x) : (y))
